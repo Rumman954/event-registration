@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Registration System - CodeAlpha</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .event-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .event-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .event-card p {
+            color: #666;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .event-card .date {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .event-card .capacity {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .event-card .full {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .close-btn {
+            float: right;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .registrations-list {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .registration-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .registration-item:last-child {
+            border-bottom: none;
+        }
+
+        .registration-item h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .registration-item p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status.confirmed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .error {
+            color: #dc3545;
+            padding: 10px;
+            background: #f8d7da;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            color: #155724;
+            padding: 10px;
+            background: #d4edda;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎉 Event Registration System</h1>
+            <p class="subtitle">Register for events and manage your registrations</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('events')">Events</button>
+            <button class="tab" onclick="showTab('registrations')">My Registrations</button>
+        </div>
+
+        <div id="events-tab" class="tab-content active">
+            <div id="events-container" class="events-grid"></div>
+        </div>
+
+        <div id="registrations-tab" class="tab-content">
+            <div class="registrations-list">
+                <h2>My Registrations</h2>
+                <div class="form-group">
+                    <label>Enter your email to view registrations:</label>
+                    <input type="email" id="user-email" placeholder="your@email.com">
+                    <button class="btn" onclick="loadRegistrations()" style="margin-top: 10px;">Load Registrations</button>
+                </div>
+                <div id="registrations-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div id="registration-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">×</button>
+            <h2>Register for Event</h2>
+            <div id="modal-error" class="error" style="display: none;"></div>
+            <form id="registration-form">
+                <input type="hidden" id="event-id">
+                <div class="form-group">
+                    <label>Name *</label>
+                    <input type="text" id="reg-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="reg-email" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" id="reg-phone">
+                </div>
+                <button type="submit" class="btn">Register</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let events = [];
+        let currentEventId = null;
+
+        // Load events on page load
+        window.onload = () => {
+            loadEvents();
+        };
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function loadEvents() {
+            try {
+                const response = await fetch('/api/events');
+                events = await response.json();
+                displayEvents();
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
+        }
+
+        function displayEvents() {
+            const container = document.getElementById('events-container');
+            container.innerHTML = '';
+
+            events.forEach(event => {
+                const eventCard = document.createElement('div');
+                eventCard.className = 'event-card';
+                
+                const isFull = event.available_spots <= 0;
+                const capacityText = isFull 
+                    ? `<span class="full">Full (${event.registered_count}/${event.max_capacity})</span>`
+                    : `<span class="capacity">${event.available_spots} spots available (${event.registered_count}/${event.max_capacity})</span>`;
+
+                eventCard.innerHTML = `
+                    <h3>${event.title}</h3>
+                    <p>${event.description || 'No description'}</p>
+                    <p class="date">📅 ${new Date(event.event_date).toLocaleString()}</p>
+                    <p>📍 ${event.location}</p>
+                    <p>${capacityText}</p>
+                    <button class="btn" onclick="openRegistrationModal(${event.id})" ${isFull ? 'disabled' : ''}>
+                        ${isFull ? 'Event Full' : 'Register'}
+                    </button>
+                `;
+                container.appendChild(eventCard);
+            });
+        }
+
+        function openRegistrationModal(eventId) {
+            currentEventId = eventId;
+            document.getElementById('event-id').value = eventId;
+            document.getElementById('registration-modal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('registration-modal').classList.remove('show');
+            document.getElementById('registration-form').reset();
+            document.getElementById('modal-error').style.display = 'none';
+        }
+
+        document.getElementById('registration-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorDiv = document.getElementById('modal-error');
+            errorDiv.style.display = 'none';
+
+            const eventId = document.getElementById('event-id').value;
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const phone = document.getElementById('reg-phone').value;
+
+            try {
+                const response = await fetch(`/api/events/${eventId}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, phone })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Registration successful!');
+                    closeModal();
+                    loadEvents();
+                } else {
+                    errorDiv.textContent = data.error || 'Registration failed';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Network error. Please try again.';
+                errorDiv.style.display = 'block';
+            }
+        });
+
+        async function loadRegistrations() {
+            const email = document.getElementById('user-email').value;
+            if (!email) {
+                alert('Please enter your email');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/users/${email}/registrations`);
+                const registrations = await response.json();
+                displayRegistrations(registrations);
+            } catch (error) {
+                console.error('Error loading registrations:', error);
+            }
+        }
+
+        function displayRegistrations(registrations) {
+            const container = document.getElementById('registrations-container');
+            container.innerHTML = '';
+
+            if (registrations.length === 0) {
+                container.innerHTML = '<p>No registrations found.</p>';
+                return;
+            }
+
+            registrations.forEach(reg => {
+                const item = document.createElement('div');
+                item.className = 'registration-item';
+                item.innerHTML = `
+                    <h4>${reg.event_title}</h4>
+                    <p>📅 ${new Date(reg.event_date).toLocaleString()}</p>
+                    <p>📍 ${reg.location}</p>
+                    <p>Registered on: ${new Date(reg.registration_date).toLocaleString()}</p>
+                    <span class="status ${reg.status}">${reg.status}</span>
+                    ${reg.status === 'confirmed' ? `<button class="btn" onclick="cancelRegistration(${reg.id})" style="margin-top: 10px; background: #dc3545;">Cancel Registration</button>` : ''}
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        async function cancelRegistration(registrationId) {
+            if (!confirm('Are you sure you want to cancel this registration?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/registrations/${registrationId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Registration cancelled successfully');
+                    loadRegistrations();
+                } else {
+                    alert(data.error || 'Failed to cancel registration');
+                }
+            } catch (error) {
+                alert('Network error. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>
+
